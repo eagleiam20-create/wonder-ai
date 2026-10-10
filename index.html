@@ -3,361 +3,397 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Street Syndicate — City World</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>STREET SYNDICATE | Global City</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#9ab6c6;font-family:Arial,sans-serif;color:white}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8da6b8;font-family:Arial,sans-serif;color:white}
 canvas{display:block}
-#top{position:fixed;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
-.panel{background:#111b26df;border:1px solid #ffffff25;border-radius:12px;padding:12px;backdrop-filter:blur(8px)}
-.brand{font-weight:900;letter-spacing:2px;color:#72f0c2}
-.small{font-size:11px;color:#c0ccd4;margin-top:5px}
-#help{position:fixed;left:16px;bottom:16px;max-width:270px;line-height:1.8;font-size:12px}
-#start{position:fixed;inset:0;display:grid;place-items:center;background:#10182066}
-#card{width:min(390px,calc(100% - 36px));padding:24px;text-align:center}
-#card h1{font-size:29px;letter-spacing:2px;margin:8px 0;color:#72f0c2}
-button{border:0;border-radius:8px;background:#72f0c2;color:#10221d;font-weight:bold;padding:13px 18px;cursor:pointer}
-#start button{width:100%;margin-top:12px}
-#crosshair{position:fixed;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#fff8;pointer-events:none}
-@media(max-width:600px){#help{font-size:10px;max-width:220px}#top{top:8px;left:8px;right:8px}.panel{padding:9px}.brand{font-size:13px}}
+#hud{position:fixed;inset:0;pointer-events:none}
+#brand{position:absolute;top:18px;left:18px;font-size:19px;font-weight:900;letter-spacing:2px;text-shadow:0 2px 8px #000}
+#brand span{display:block;color:#77e4ff;font-size:10px;letter-spacing:4px;margin-top:5px}
+#stats{position:absolute;top:18px;right:18px;text-align:right;font-size:12px;line-height:1.8;text-shadow:0 2px 6px #000}
+#help{position:absolute;bottom:18px;left:18px;background:#07121bc9;border:1px solid #ffffff30;border-radius:10px;padding:12px;font-size:12px;line-height:1.8}
+#crosshair{position:absolute;left:50%;top:50%;width:5px;height:5px;background:white;border-radius:50%;opacity:.6}
+#start{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:linear-gradient(120deg,#06111eeF,#102b40dd,#07121df2)}
+.panel{width:min(540px,90vw);padding:30px;border:1px solid #7ddfff66;border-radius:20px;background:#081522e8;box-shadow:0 20px 80px #0008}
+.panel h1{font-size:clamp(28px,6vw,48px);margin:0;letter-spacing:2px}
+.panel h1 b{color:#77e4ff}
+.panel p{color:#c5d5e2;line-height:1.6}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0}
+.tag{font-size:11px;border:1px solid #ffffff30;border-radius:20px;padding:7px 10px;color:#bceeff}
+button{border:0;border-radius:9px;padding:14px 20px;background:#77e4ff;color:#07121d;font-weight:900;font-size:14px;cursor:pointer}
+#play{width:100%}
+#loading{font-size:12px;color:#a6c4d8;margin-top:12px}
+#mobile{display:none;position:fixed;inset:0;pointer-events:none;z-index:3}
+#stick{position:absolute;bottom:35px;left:28px;width:116px;height:116px;border-radius:50%;border:2px solid #ffffff66;background:#09172266;pointer-events:auto;touch-action:none}
+#nub{position:absolute;width:46px;height:46px;border-radius:50%;left:33px;top:33px;background:#77e4ffb8;border:2px solid white}
+#look{position:absolute;right:0;top:20%;height:55%;width:48%;pointer-events:auto;touch-action:none}
+#run{position:absolute;right:25px;bottom:48px;pointer-events:auto;border-radius:50%;width:70px;height:70px;padding:0;background:#ffffffdd}
+@media (pointer:coarse){#mobile{display:block}#help{display:none}}
 </style>
 </head>
 <body>
-<div id="top">
- <div class="panel">
-  <div class="brand">STREET SYNDICATE</div>
-  <div class="small">WORLD BUILD 01 · DOWNTOWN</div>
- </div>
- <div class="panel" style="text-align:right">
-  <div id="clock">10:00 AM</div>
-  <div class="small">FREE ROAM · SOLO</div>
- </div>
-</div>
-<div id="help" class="panel">
- <b>CITY CONTROLS</b><br>
- W A S D — Walk<br>
- Mouse drag — Rotate camera<br>
- Mouse wheel — Zoom<br>
- Shift — Run<br>
- Explore the city and discover its districts.
-</div>
-<div id="crosshair"></div>
 <div id="start">
- <div id="card" class="panel">
-  <div class="small">WELCOME TO YOUR NEW WORLD</div>
-  <h1>STREET<br>SYNDICATE</h1>
-  <p>A living city starts here.</p>
-  <p class="small">Explore Downtown in this first world prototype.</p>
-  <button id="play">ENTER THE CITY</button>
- </div>
+  <div class="panel">
+    <h1>STREET <b>SYNDICATE</b></h1>
+    <p>GLOBAL CITY // OPEN-WORLD PROTOTYPE</p>
+    <p>Explore a procedurally generated international city with a downtown skyline, residential districts, parks, an industrial zone, an airport and a waterfront.</p>
+    <div class="tags">
+      <span class="tag">LARGE WORLD</span><span class="tag">THIRD-PERSON</span>
+      <span class="tag">PC CONTROLS</span><span class="tag">TOUCH CONTROLS</span>
+    </div>
+    <button id="play">ENTER THE CITY</button>
+    <div id="loading">Building the city... please wait.</div>
+  </div>
+</div>
+
+<div id="hud">
+  <div id="brand">STREET SYNDICATE<span>GLOBAL CITY PROJECT</span></div>
+  <div id="stats">DISTRICT: <b id="district">DOWNTOWN</b><br>POSITION: <b id="pos">0, 0</b><br>WORLD: <b>1,200 × 1,200</b></div>
+  <div id="crosshair"></div>
+  <div id="help">W A S D — MOVE<br>SHIFT — RUN<br>MOUSE DRAG — LOOK<br>Explore the city freely</div>
+</div>
+
+<div id="mobile">
+  <div id="stick"><div id="nub"></div></div>
+  <div id="look"></div>
+  <button id="run">RUN</button>
 </div>
 
 <script type="module">
-import * as THREE from
-"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js";
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xa7c7d5);
-scene.fog = new THREE.Fog(0xa7c7d5, 65, 155);
+scene.background = new THREE.Color(0x9db9ce);
+scene.fog = new THREE.Fog(0x9db9ce, 250, 1050);
 
-const camera = new THREE.PerspectiveCamera(
- 65, innerWidth/innerHeight, 0.1, 220
-);
-const renderer = new THREE.WebGLRenderer({antialias:false});
+const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 1800);
+const renderer = new THREE.WebGLRenderer({antialias:false, powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.shadowMap.enabled = false;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
 document.body.appendChild(renderer.domElement);
 
-const mat = (color, roughness=1) =>
- new THREE.MeshStandardMaterial({color,roughness});
-
-scene.add(new THREE.HemisphereLight(0xe6f4ff,0x63735f,2.1));
-const sun = new THREE.DirectionalLight(0xffefd8,2.0);
-sun.position.set(-35,65,25);
+scene.add(new THREE.HemisphereLight(0xe5f4ff,0x52604e,2.0));
+const sun = new THREE.DirectionalLight(0xffedcf,2.1);
+sun.position.set(-250,400,180);
 scene.add(sun);
 
-const materials = {
- grass:mat(0x78936a),
- road:mat(0x333c45),
- pavement:mat(0xb7b8b0),
- white:mat(0xe8e3cd),
- yellow:mat(0xe7bd65),
- glass:mat(0x527582),
- tree:mat(0x527e55),
- trunk:mat(0x735641),
- roof:mat(0x48535a)
-};
+const mat=(color,roughness=0.9)=>new THREE.MeshStandardMaterial({color,roughness});
+const groundMat=mat(0x687b6c);
+const roadMat=mat(0x303941);
+const sidewalkMat=mat(0xb7b8b1);
+const lineMat=mat(0xd5d2a2);
+const waterMat=new THREE.MeshStandardMaterial({color:0x287eaa,roughness:.3,metalness:.15});
+const grassMat=mat(0x4d8054);
+const trunkMat=mat(0x59402e);
+const leafMat=mat(0x39734a);
 
-function block(w,h,d,material,x,y,z,parent=scene){
- const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
- m.position.set(x,y,z);
- parent.add(m);
- return m;
+function box(parent,w,h,d,material,x,y,z){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+  m.position.set(x,y,z);parent.add(m);return m;
+}
+function plane(w,d,material,x,y,z){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),material);
+  m.rotation.x=-Math.PI/2;m.position.set(x,y,z);scene.add(m);return m;
 }
 
-const ground=block(150,0.5,150,materials.grass,0,-0.3,0);
-const roads=[];
-const roadWidth=8;
-const roadPositions=[-48,-24,0,24,48];
+// WORLD SIZE: 1,200 x 1,200
+plane(1200,1200,groundMat,0,-0.12,0);
 
-for(const p of roadPositions){
- block(150,0.08,roadWidth,materials.road,0,0.0,p);
- block(roadWidth,0.08,150,materials.road,p,0.01,0);
+// Water, coastline and waterfront promenade
+plane(1200,220,waterMat,0,-0.05,-550);
+plane(1200,25,sidewalkMat,0,0.01,-435);
+plane(1200,10,roadMat,0,0.02,-450);
 
- for(let n=-66;n<=66;n+=8){
-  block(2.7,0.035,0.13,materials.white,n,0.06,p);
-  block(0.13,0.035,2.7,materials.white,p,0.065,n);
- }
- // Sidewalks
- for(const s of [-1,1]){
-  block(150,0.15,1.5,materials.pavement,0,0.06,p+s*5.2);
-  block(1.5,0.15,150,materials.pavement,p+s*5.2,0.06,0);
- }
+// Main roads and smaller connected streets
+const ROAD_SPACING=50;
+for(let p=-575;p<=575;p+=ROAD_SPACING){
+  plane(1200,15,roadMat,p,0.005,0);
+  plane(15,1200,roadMat,0,0.006,p);
+
+  // Dashed road markings
+  for(let t=-570;t<=570;t+=24){
+    plane(7,.22,lineMat,p,0.018,t);
+    const mark=plane(.22,7,lineMat,t,0.019,p);
+  }
+
+  // Sidewalks parallel to each road
+  plane(1200,2.2,sidewalkMat,p+9,0.012,0);
+  plane(1200,2.2,sidewalkMat,p-9,0.012,0);
+  plane(2.2,1200,sidewalkMat,0,0.013,p+9);
+  plane(2.2,1200,sidewalkMat,0,0.013,p-9);
 }
 
-// Central civic plaza
-block(24,0.12,24,mat(0xc8c8bd),0,0.08,0);
-block(5,0.65,5,mat(0x9aabae),0,0.3,0);
-block(3.5,0.35,3.5,mat(0x5f9fa2),0,0.75,0);
-block(1.2,0.8,1.2,mat(0x8bd3db),0,1.1,0);
+// City district zones
+function park(x,z,w,d){
+  plane(w,d,grassMat,x,0.015,z);
+  // Walking paths
+  plane(w-8,3,sidewalkMat,x,.025,z);
+  const path=plane(3,d-8,sidewalkMat,x,.03,z);
+  // Trees
+  for(let a=x-w/2+8;a<x+w/2-5;a+=15){
+    for(let b=z-d/2+8;b<z+d/2-5;b+=16){
+      if(Math.abs(a-x)<4 || Math.abs(b-z)<4)continue;
+      tree(a,b);
+    }
+  }
+}
+function tree(x,z){
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.35,.55,3,5),trunkMat);
+  trunk.position.set(x,1.5,z);scene.add(trunk);
+  const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(2.1,0),leafMat);
+  crown.position.set(x,4,z);scene.add(crown);
+}
+park(185,100,115,125);
+park(-285,230,100,95);
+park(350,-210,90,75);
 
-// Building windows: small repeated details, no textures needed
-const windowMat=mat(0x94b7c3);
-const litWindow=new THREE.MeshStandardMaterial({
- color:0xf0d9a2,emissive:0x4b3514,emissiveIntensity:0.25
+// Landmark plaza
+plane(90,70,sidewalkMat,-80,0.02,80);
+for(let i=0;i<4;i++){
+  const f=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2.6,7,12),mat(0xc5d1d8));
+  f.position.set(-108+i*18,3.5,80);scene.add(f);
+}
+
+// Instanced buildings: hundreds of buildings without hundreds of draw calls
+const buildingMaterials=[
+  mat(0x8795a3),mat(0xb8b7b0),mat(0x647a8c),
+  mat(0x9a9d9f),mat(0xc3c5c1),mat(0x526473),
+  mat(0xd0c7b8),mat(0x6c858e)
+];
+const buildingGeometry=new THREE.BoxGeometry(1,1,1);
+const batches=buildingMaterials.map(material=>{
+  const mesh=new THREE.InstancedMesh(buildingGeometry,material,1800);
+  mesh.count=0;mesh.castShadow=false;mesh.receiveShadow=false;
+  scene.add(mesh);return mesh;
 });
+const dummy=new THREE.Object3D();
+let buildingCount=0;
 
-function makeBuilding(x,z,w,d,h,index){
- const group=new THREE.Group();
- const palettes=[0xb9b3a8,0x8f9da4,0xc1b8a8,0x7e9197,0xa4a6a1];
- const base=mat(palettes[index%palettes.length]);
- block(w,h,d,base,0,h/2,0,group);
- block(w+0.25,0.45,d+0.25,materials.roof,0,h+0.15,0,group);
-
- const floors=Math.floor((h-2)/2.5);
- for(let floor=0;floor<floors;floor++){
-  for(let side=-1;side<=1;side+=2){
-   const count=Math.max(2,Math.floor(w/1.8));
-   for(let j=0;j<count;j++){
-    const wx=(j-(count-1)/2)*(w/(count+1));
-    block(0.72,0.9,0.07,
-      Math.random()>.76?litWindow:windowMat,
-      wx,1.4+floor*2.5,side*(d/2+0.04),group);
-   }
-   const depthCount=Math.max(2,Math.floor(d/2));
-   for(let j=0;j<depthCount;j++){
-    const wz=(j-(depthCount-1)/2)*(d/(depthCount+1));
-    block(0.07,0.9,0.72,windowMat,
-      side*(w/2+0.04),1.4+floor*2.5,wz,group);
-   }
-  }
- }
- group.position.set(x,0,z);
- scene.add(group);
+function isPark(x,z){
+  return (Math.abs(x-185)<59&&Math.abs(z-100)<64)||
+         (Math.abs(x+285)<52&&Math.abs(z-230)<49)||
+         (Math.abs(x-350)<47&&Math.abs(z+210)<39);
+}
+function isAirport(x,z){return x>390&&z>300&&z<500}
+function districtAt(x,z){
+  if(z < -425)return 'WATERFRONT';
+  if(isAirport(x,z))return 'AIRPORT ZONE';
+  if(x < -300 && z < 100)return 'INDUSTRIAL ZONE';
+  if(Math.abs(x)<150&&Math.abs(z)<150)return 'DOWNTOWN';
+  if(x>200&&z>150)return 'RESIDENTIAL';
+  if(Math.abs(x)<300&&z>-300&&z<300)return 'COMMERCIAL';
+  return 'OUTER CITY';
+}
+function addBuilding(x,z,w,d,h,colorIndex){
+  if(buildingCount>=1800)return;
+  const mesh=batches[colorIndex%buildingMaterials.length];
+  const i=mesh.count;
+  dummy.position.set(x,h/2,z);
+  dummy.scale.set(w,h,d);
+  dummy.rotation.set(0,0,0);
+  dummy.updateMatrix();
+  mesh.setMatrixAt(i,dummy.matrix);
+  mesh.count++;
+  buildingCount++;
 }
 
-// Buildings are arranged around the road grid.
-// Leave the plaza open for future missions and player gathering.
-let seed=5;
-function random(){
- seed=(seed*16807)%2147483647;
- return (seed-1)/2147483646;
-}
+// Fill city blocks with different architectural profiles
+for(let bx=-550;bx<=550;bx+=50){
+ for(let bz=-550;bz<=550;bz+=50){
+  if(isPark(bx,bz)||isAirport(bx,bz)||bz < -430)continue;
+  const dist=districtAt(bx,bz);
+  let lots=2;
+  if(dist==='DOWNTOWN')lots=3;
+  else if(dist==='INDUSTRIAL ZONE')lots=2;
+  else lots=2;
 
-const centers=[-36,-12,12,36];
-let index=0;
-for(const x of centers){
- for(const z of centers){
-  if(Math.abs(x)<15&&Math.abs(z)<15)continue;
-  const count=(random()>.45)?2:1;
-  for(let i=0;i<count;i++){
-   const bx=x+(count===2?(i===0?-4:4):0);
-   const bz=z+(count===2?(i===0?3:-3):0);
-   const w=5+random()*3;
-   const d=5+random()*3;
-   const h=9+random()*21;
-   makeBuilding(bx,bz,w,d,h,index++);
-  }
- }
-}
-
-// Parks, trees and street furniture
-function makeTree(x,z,scale=1){
- const g=new THREE.Group();
- const trunk=block(.45*scale,2*scale,.45*scale,
-  materials.trunk,0,scale,0,g);
- const crown=new THREE.Mesh(
-  new THREE.SphereGeometry(1.3*scale,7,6),materials.tree);
- crown.position.y=2.5*scale;
- g.add(crown);
- scene.add(g);g.position.set(x,0,z);
-}
-for(let p=-60;p<=60;p+=12){
- for(const s of [-1,1]){
-  makeTree(p,s*7.1,0.75+random()*.35);
-  makeTree(s*7.1,p,0.75+random()*.35);
- }
-}
-
-// Streetlights
-const lampMat=mat(0x34434a);
-const bulbMat=new THREE.MeshStandardMaterial({
- color:0xffe3a0,emissive:0xffc75e,emissiveIntensity:0.6
-});
-for(const p of roadPositions){
- for(let n=-48;n<=48;n+=24){
-  for(const s of [-1,1]){
-   const x=p+s*6.6,z=n;
-   block(.16,3.8,.16,lampMat,x,1.9,z);
-   block(.9,.14,.2,lampMat,x+s*.3,3.7,z);
-   block(.18,.18,.25,bulbMat,x+s*.6,3.65,z);
+  for(let k=0;k<lots;k++){
+    const x=bx+(Math.random()-.5)*24;
+    const z=bz+(Math.random()-.5)*24;
+    const w=8+Math.random()*9;
+    const d=8+Math.random()*9;
+    let h;
+    if(dist==='DOWNTOWN')h=35+Math.random()*125;
+    else if(dist==='INDUSTRIAL ZONE')h=8+Math.random()*12;
+    else if(dist==='RESIDENTIAL')h=9+Math.random()*28;
+    else if(dist==='COMMERCIAL')h=15+Math.random()*55;
+    else h=10+Math.random()*38;
+    addBuilding(x,z,w,d,h,Math.floor(Math.random()*buildingMaterials.length));
   }
  }
 }
 
-// Parked cars
-function makeCar(x,z,color,rotation=0){
- const g=new THREE.Group();
- block(1.8,.65,3.5,mat(color),0,.7,0,g);
- block(1.4,.65,1.6,mat(0x506570),0,1.25,-.15,g);
- for(const sx of [-1,1]){
-  for(const sz of [-1,1]){
-   block(.22,.48,.55,mat(0x20242a),sx*.91,.4,sz*1.1,g);
-  }
- }
- g.position.set(x,0,z);
- g.rotation.y=rotation;
- scene.add(g);
- return g;
-}
-makeCar(-7,13,0x3d6f96);
-makeCar(-10,13,0xb4b8bd);
-makeCar(7,-13,0xc3a06b);
-makeCar(10,-13,0x4a7665);
-makeCar(13,7,0x8d5550,Math.PI/2);
+// Airport: runway, taxiway, terminal and control tower
+plane(190,48,roadMat,480,.025,405);
+plane(180,4,lineMat,480,.04,405);
+plane(95,22,sidewalkMat,480,.04,365);
+box(scene,75,10,22,mat(0x9aaeb8),480,5,355);
+box(scene,7,26,7,mat(0x91a9b9),445,13,355);
 
-// Simple third-person player character
+// Waterfront buildings, piers and bridge
+for(let x=-330;x<=330;x+=42){
+  box(scene,22,1.2,24,mat(0x9caaa8),x,.8,-420);
+}
+const bridgeMat=mat(0x77848d);
+box(scene,150,1.5,18,bridgeMat,340,.9,-445);
+for(let x=275;x<=405;x+=32){
+  box(scene,1.5,10,1.5,mat(0xd0d4d5),x,5,-445);
+}
+
+// Simple static parked vehicles
+const carPaint=[0x243a50,0xb4b7b9,0x8e302e,0xe0d6bb,0x202326,0x3b675b];
+for(let i=0;i<110;i++){
+  const x=(Math.random()-.5)*1080;
+  const z=(Math.random()-.5)*1080;
+  if(z < -430 || isPark(x,z)||isAirport(x,z))continue;
+  const car=new THREE.Group();
+  const paint=mat(carPaint[Math.floor(Math.random()*carPaint.length)]);
+  box(car,2.4,1.1,4.6,paint,0,.8,0);
+  box(car,1.8,.65,2.1,mat(0x92b6c5),0,1.55,-.1);
+  car.position.set(x,.02,z);
+  car.rotation.y=Math.random()*Math.PI;
+  scene.add(car);
+}
+
+// Player character
 const player=new THREE.Group();
-const skin=mat(0xc99773);
-const shirt=mat(0x2b6f65);
-const pants=mat(0x303744);
-block(.7,.85,.38,shirt,0,1.15,0,player);
-block(.43,.48,.43,skin,0,1.85,0,player);
-for(const x of [-.2,.2]){
- block(.22,.72,.25,pants,x,.42,0,player);
- block(.18,.18,.35,mat(0x24282d),x,.09,.05,player);
- block(.18,.65,.22,shirt,x*.2,1.25,0,player);
-}
-player.position.set(0,0,7);
+const bodyMat=mat(0x243c65);
+const skinMat=mat(0xd0a17d);
+const legsMat=mat(0x20262d);
+const body= new THREE.Mesh(new THREE.CapsuleGeometry(.55,.7,3,6),bodyMat);
+body.position.y=1.35;player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.38,10,8),skinMat);
+head.position.y=2.3;player.add(head);
+const legs=new THREE.Mesh(new THREE.BoxGeometry(.7,.8,.38),legsMat);
+legs.position.set(0,.48,0);player.add(legs);
+player.position.set(0,0,15);
 scene.add(player);
 
+// Camera: third-person follow
+let yaw=0,pitch=.22;
 const keys={};
-addEventListener("keydown",e=>{
- keys[e.key.toLowerCase()]=true;
- if(["w","a","s","d"," "].includes(e.key.toLowerCase()))e.preventDefault();
-});
-addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
-addEventListener("blur",()=>Object.keys(keys).forEach(k=>keys[k]=false));
+let movingX=0,movingY=0,runHeld=false;
+let started=false;
+const cameraOffset=new THREE.Vector3();
 
-let yaw=0,pitch=.18,zoom=7;
+function updateCamera(){
+  const target=new THREE.Vector3(player.position.x,player.position.y+2,player.position.z);
+  const distance=8;
+  cameraOffset.set(
+    Math.sin(yaw)*Math.cos(pitch)*distance,
+    3+Math.sin(pitch)*distance,
+    Math.cos(yaw)*Math.cos(pitch)*distance
+  );
+  camera.position.copy(target).add(cameraOffset);
+  camera.lookAt(target);
+}
+
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
+window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+
 let dragging=false,lastX=0,lastY=0;
-renderer.domElement.addEventListener("pointerdown",e=>{
- dragging=true;lastX=e.clientX;lastY=e.clientY;
- renderer.domElement.setPointerCapture(e.pointerId);
+renderer.domElement.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse'&&e.button===0){dragging=true;lastX=e.clientX;lastY=e.clientY;}
 });
-renderer.domElement.addEventListener("pointermove",e=>{
- if(!dragging)return;
- yaw-=(e.clientX-lastX)*.005;
- pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,-.1,.65);
- lastX=e.clientX;lastY=e.clientY;
+window.addEventListener('pointerup',()=>dragging=false);
+window.addEventListener('pointermove',e=>{
+  if(!dragging||!started)return;
+  yaw-=(e.clientX-lastX)*.004;
+  pitch=Math.max(-.25,Math.min(.85,pitch+(e.clientY-lastY)*.003));
+  lastX=e.clientX;lastY=e.clientY;
 });
-renderer.domElement.addEventListener("pointerup",()=>dragging=false);
-renderer.domElement.addEventListener("pointercancel",()=>dragging=false);
-renderer.domElement.addEventListener("wheel",e=>{
- zoom=THREE.MathUtils.clamp(zoom+e.deltaY*.012,4,12);
-},{passive:true});
 
-// Prevent walking through buildings
-const obstacles=[];
-for(const child of scene.children){
- if(child.userData.building)obstacles.push(child);
+// Mobile joystick
+const stick=document.getElementById('stick');
+const nub=document.getElementById('nub');
+let stickPointer=null;
+stick.addEventListener('pointerdown',e=>{
+  stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);moveStick(e);
+});
+stick.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer)moveStick(e);});
+function moveStick(e){
+  const r=stick.getBoundingClientRect();
+  let dx=e.clientX-(r.left+r.width/2);
+  let dy=e.clientY-(r.top+r.height/2);
+  const len=Math.hypot(dx,dy),max=34;
+  if(len>max){dx=dx/len*max;dy=dy/len*max;}
+  nub.style.transform=`translate(${dx}px,${dy}px)`;
+  movingX=dx/max;movingY=dy/max;
 }
-const blocked=[
- [-36,-36],[-36,-12],[-36,12],[-36,36],
- [-12,-36],[-12,36],[12,-36],[12,36],
- [36,-36],[36,-12],[36,12],[36,36]
-];
-
-function canMove(x,z){
- if(Math.abs(x)>69||Math.abs(z)>69)return false;
- // Keep the main character out of building footprints.
- for(const obj of scene.children){
-  if(obj.userData.solid){
-   const dx=x-obj.position.x,dz=z-obj.position.z;
-   if(Math.abs(dx)<obj.userData.w/2+.5 &&
-      Math.abs(dz)<obj.userData.d/2+.5)return false;
-  }
- }
- return true;
+function resetStick(){
+  stickPointer=null;movingX=0;movingY=0;nub.style.transform='translate(0,0)';
 }
+stick.addEventListener('pointerup',resetStick);
+stick.addEventListener('pointercancel',resetStick);
+document.getElementById('run').addEventListener('pointerdown',()=>runHeld=true);
+document.getElementById('run').addEventListener('pointerup',()=>runHeld=false);
+document.getElementById('run').addEventListener('pointercancel',()=>runHeld=false);
 
-// Mark generated building groups as solid for simple collision.
-scene.children.forEach(obj=>{
- if(obj.type==="Group"&&obj.children.length>10){
-  obj.userData.solid=true;
-  obj.userData.w=8.5;
-  obj.userData.d=8.5;
- }
+const look=document.getElementById('look');
+let lookId=null,lx=0,ly=0;
+look.addEventListener('pointerdown',e=>{lookId=e.pointerId;lx=e.clientX;ly=e.clientY;look.setPointerCapture(e.pointerId);});
+look.addEventListener('pointermove',e=>{
+  if(e.pointerId!==lookId)return;
+  yaw-=(e.clientX-lx)*.008;
+  pitch=Math.max(-.25,Math.min(.85,pitch+(e.clientY-ly)*.006));
+  lx=e.clientX;ly=e.clientY;
 });
+look.addEventListener('pointerup',()=>lookId=null);
+look.addEventListener('pointercancel',()=>lookId=null);
 
-let playing=false;
-$("play").onclick=()=>{
- playing=true;
- $("start").style.display="none";
- renderer.domElement.focus();
-};
+document.getElementById('play').addEventListener('click',()=>{
+  started=true;
+  document.getElementById('start').style.display='none';
+  updateCamera();
+});
 
 const clock=new THREE.Clock();
+let frame=0;
 function animate(){
- requestAnimationFrame(animate);
- const dt=Math.min(clock.getDelta(),.04);
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),.04);
 
- if(playing){
-  let forward=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0);
-  let side=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
-  if(forward||side){
-   const speed=(keys.shift?9:5)*dt;
-   const dx=(Math.sin(yaw)*forward+Math.cos(yaw)*side)*speed;
-   const dz=(Math.cos(yaw)*forward-Math.sin(yaw)*side)*speed;
-   if(canMove(player.position.x+dx,player.position.z))player.position.x+=dx;
-   if(canMove(player.position.x,player.position.z+dz))player.position.z+=dz;
-   player.rotation.y=Math.atan2(dx,dz);
+  if(started){
+    let forward=(keys['w']||keys['arrowup']?1:0)-(keys['s']||keys['arrowdown']?1:0)-movingY;
+    let side=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0)+movingX;
+    const len=Math.hypot(forward,side);
+    if(len>1){forward/=len;side/=len;}
+
+    const speed=(keys['shift']||runHeld?17:9)*dt;
+    const dx=(Math.sin(yaw)*forward+Math.cos(yaw)*side)*speed;
+    const dz=(Math.cos(yaw)*forward-Math.sin(yaw)*side)*speed;
+    player.position.x=THREE.MathUtils.clamp(player.position.x+dx,-585,585);
+    player.position.z=THREE.MathUtils.clamp(player.position.z+dz,-585,585);
+
+    if(Math.abs(forward)+Math.abs(side)>.1){
+      player.rotation.y=Math.atan2(dx,dz);
+      legs.rotation.x=Math.sin(performance.now()*.012)*.12;
+    }else legs.rotation.x=0;
+
+    document.getElementById('pos').textContent=
+      `${Math.round(player.position.x)}, ${Math.round(player.position.z)}`;
+    document.getElementById('district').textContent=
+      districtAt(player.position.x,player.position.z);
+    updateCamera();
   }
-  const target=new THREE.Vector3(
-   player.position.x-Math.sin(yaw)*zoom,
-   player.position.y+3+pitch*5,
-   player.position.z-Math.cos(yaw)*zoom
-  );
-  camera.position.lerp(target,.12);
-  camera.lookAt(player.position.x,1.25,player.position.z);
- }else{
-  camera.position.set(30,28,38);
-  camera.lookAt(0,0,0);
- }
- renderer.render(scene,camera);
-}
-camera.position.set(30,28,38);
-camera.lookAt(0,0,0);
-requestAnimationFrame(animate);
 
-addEventListener("resize",()=>{
- camera.aspect=innerWidth/innerHeight;
- camera.updateProjectionMatrix();
- renderer.setSize(innerWidth,innerHeight);
+  renderer.render(scene,camera);
+  frame++;
+}
+window.addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 });
+document.getElementById('loading').textContent='World systems ready. Enter when you are ready.';
+animate();
 </script>
 </body>
 </html>
