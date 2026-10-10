@@ -1,216 +1,348 @@
 
-/* ==========================================
-   STREET SYNDICATE — ARCHITECTURE SYSTEM
-   Paste above // 12. ENTER WORLD
-========================================== */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>STREET SYNDICATE — Global City</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9bbbd0;font-family:Arial,sans-serif}
+canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;color:white}
+#logo{position:absolute;top:17px;left:18px;font-size:20px;font-weight:900;letter-spacing:2px;text-shadow:0 2px 8px #000}
+#logo span{display:block;color:#8ce8ff;font-size:10px;letter-spacing:4px;margin-top:5px}
+#info{position:absolute;right:18px;top:18px;text-align:right;font-size:12px;line-height:1.8;text-shadow:0 2px 8px #000}
+#help{position:absolute;bottom:18px;left:18px;background:#071522dd;border:1px solid #ffffff40;border-radius:10px;padding:12px;font-size:12px;line-height:1.8}
+#start{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:linear-gradient(130deg,#06111df5,#173b50e8)}
+.panel{width:min(500px,90vw);padding:28px;border:1px solid #8ce8ff70;border-radius:18px;background:#091927ee;color:white}
+h1{font-size:clamp(27px,7vw,46px);margin:0;letter-spacing:2px}
+h1 b{color:#8ce8ff}
+p{color:#c9d9e4;line-height:1.6}
+button{border:0;border-radius:9px;padding:14px 20px;background:#8ce8ff;color:#071522;font-weight:900}
+#play{width:100%;cursor:pointer}
+#status{font-size:12px}
+#mobile{display:none;position:fixed;inset:0;z-index:3;pointer-events:none}
+#stick{position:absolute;left:24px;bottom:28px;width:110px;height:110px;border:2px solid #ffffff70;border-radius:50%;background:#07152266;pointer-events:auto;touch-action:none}
+#nub{position:absolute;left:31px;top:31px;width:44px;height:44px;border-radius:50%;background:#8ce8ffcc;border:2px solid white}
+#look{position:absolute;right:0;top:15%;width:48%;height:60%;pointer-events:auto;touch-action:none}
+#run{position:absolute;right:25px;bottom:45px;width:68px;height:68px;border-radius:50%;pointer-events:auto}
+@media(pointer:coarse){#mobile{display:block}#help{display:none}}
+</style>
+</head>
+<body>
 
-const architecture = new THREE.Group();
-scene.add(architecture);
+<div id="start">
+  <div class="panel">
+    <h1>STREET <b>SYNDICATE</b></h1>
+    <p>WORLD 001 — GLOBAL CITY</p>
+    <p>Explore a large procedural city with skyscrapers, roads, residential buildings and moving traffic.</p>
+    <button id="play">ENTER THE CITY</button>
+    <p id="status">Preparing world...</p>
+  </div>
+</div>
 
-const buildingMats = {
-  concrete: [
-    0x9ca8b1, 0xb7b8b3, 0x727f8a, 0xd0c8bb
-  ].map(c => new THREE.MeshStandardMaterial({
-    color:c, roughness:0.85
-  })),
-  glass: [
-    0x24475a, 0x315c70, 0x567b8c, 0x8ab1bf
-  ].map(c => new THREE.MeshStandardMaterial({
-    color:c, metalness:0.45, roughness:0.25
-  })),
-  window: new THREE.MeshStandardMaterial({
-    color:0x8fd5e8, emissive:0x173947,
-    emissiveIntensity:0.25, roughness:0.25
-  }),
-  darkWindow: new THREE.MeshStandardMaterial({
-    color:0x172d3b, metalness:0.25, roughness:0.3
-  }),
-  balcony: new THREE.MeshStandardMaterial({
-    color:0xc7d0d5, metalness:0.3, roughness:0.4
-  }),
-  roof: new THREE.MeshStandardMaterial({
-    color:0x454e57, roughness:0.8
-  }),
-  shop: new THREE.MeshStandardMaterial({
-    color:0x152d3a, metalness:0.25, roughness:0.3
-  }),
-  light: new THREE.MeshStandardMaterial({
-    color:0xf8f0ce, emissive:0xffd78a,
-    emissiveIntensity:1.2
-  }),
-  pole: new THREE.MeshStandardMaterial({
-    color:0x343d43, metalness:0.65, roughness:0.4
-  })
-};
+<div id="hud">
+  <div id="logo">STREET SYNDICATE<span>GLOBAL CITY PROJECT</span></div>
+  <div id="info">
+    WORLD: 1,200 × 1,200<br>
+    DISTRICT: <b id="district">DOWNTOWN</b><br>
+    POSITION: <b id="position">0, 15</b><br>
+    TRAFFIC: <b id="trafficCount">0</b> vehicles
+  </div>
+  <div id="help">W A S D — MOVE<br>SHIFT — RUN<br>MOUSE DRAG — LOOK</div>
+</div>
 
-function archBox(parent,w,h,d,material,x,y,z){
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(w,h,d),material
-  );
-  mesh.position.set(x,y,z);
-  parent.add(mesh);
-  return mesh;
+<div id="mobile">
+  <div id="stick"><div id="nub"></div></div>
+  <div id="look"></div>
+  <button id="run">RUN</button>
+</div>
+
+<script type="module">
+import * as THREE from
+'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+
+// ========================================
+// 1. SCENE, CAMERA AND RENDERER
+// ========================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9bbbd0);
+scene.fog = new THREE.Fog(0x9bbbd0, 220, 950);
+
+const camera = new THREE.PerspectiveCamera(
+  65, innerWidth/innerHeight, 0.1, 1500
+);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias:false,
+  powerPreference:"high-performance"
+});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+// ========================================
+// 2. LIGHTING
+// ========================================
+scene.add(new THREE.HemisphereLight(0xe5f5ff,0x52604d,2));
+
+const sun = new THREE.DirectionalLight(0xffe5bc,2);
+sun.position.set(-200,350,150);
+scene.add(sun);
+
+// ========================================
+// 3. MATERIALS
+// ========================================
+function material(color,roughness=0.8,metalness=0){
+  return new THREE.MeshStandardMaterial({
+    color,roughness,metalness
+  });
 }
 
-function makeBuilding(x,z,w,d,h,type){
-  const building = new THREE.Group();
-  building.position.set(x,0,z);
-  architecture.add(building);
+const groundMat=material(0x657b64);
+const roadMat=material(0x303740);
+const sidewalkMat=material(0xb9bcb8);
+const lineMat=new THREE.MeshBasicMaterial({color:0xe3dfb6});
+const waterMat=material(0x287eaa,0.3,0.15);
 
-  const facade = type === "tower"
-    ? buildingMats.glass[Math.floor(Math.random()*buildingMats.glass.length)]
-    : buildingMats.concrete[Math.floor(Math.random()*buildingMats.concrete.length)];
+const concreteMats=[
+  0x9ca8b1,0xb7b8b3,0x727f8a,0xd0c8bb
+].map(c=>material(c));
+
+const glassMats=[
+  0x24475a,0x315c70,0x567b8c,0x8ab1bf
+].map(c=>material(c,0.25,0.35));
+
+const windowMat=material(0x172d3b,0.3,0.2);
+const brightGlass=material(0x8fd5e8,0.25,0.2);
+const balconyMat=material(0xc7d0d5,0.4,0.25);
+const roofMat=material(0x454e57);
+const shopMat=material(0x152d3a,0.3,0.2);
+const poleMat=material(0x343d43,0.4,0.6);
+const lampMat=new THREE.MeshStandardMaterial({
+  color:0xffedbd,
+  emissive:0xffcf70,
+  emissiveIntensity:1
+});
+
+// ========================================
+// 4. HELPER FUNCTIONS
+// ========================================
+function addPlane(w,d,mat,x,y,z,parent=scene){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);
+  m.rotation.x=-Math.PI/2;
+  m.position.set(x,y,z);
+  parent.add(m);
+  return m;
+}
+
+function addBox(parent,w,h,d,mat,x,y,z){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  m.position.set(x,y,z);
+  parent.add(m);
+  return m;
+}
+
+// ========================================
+// 5. GROUND AND ROAD GRID
+// ========================================
+addPlane(1200,1200,groundMat,0,-0.1,0);
+
+for(let p=-550;p<=550;p+=50){
+  addPlane(1200,15,roadMat,0,0,p);
+  addPlane(15,1200,roadMat,p,0.01,0);
+
+  addPlane(1200,2,sidewalkMat,0,0.02,p+9);
+  addPlane(1200,2,sidewalkMat,0,0.02,p-9);
+  addPlane(2,1200,sidewalkMat,p+9,0.02,0);
+  addPlane(2,1200,sidewalkMat,p-9,0.02,0);
+
+  for(let t=-570;t<=570;t+=24){
+    addPlane(6,0.18,lineMat,t,0.025,p);
+    addPlane(0.18,6,lineMat,p,0.026,t);
+  }
+}
+
+// Waterfront
+addPlane(1200,180,waterMat,0,-0.05,-530);
+addPlane(1200,10,sidewalkMat,0,0,-435);
+
+// ========================================
+// 6. PARKS AND TREES
+// ========================================
+const parks=[
+  {x:185,z:100,w:70,d:75},
+  {x:-285,z:230,w:60,d:60},
+  {x:350,z:-210,w:55,d:50}
+];
+
+const treeTrunk=material(0x59402e);
+const treeLeaves=material(0x39734a);
+const treeGeo=new THREE.CylinderGeometry(.35,.5,3,5);
+const crownGeo=new THREE.IcosahedronGeometry(2,0);
+
+function inPark(x,z){
+  return parks.some(p=>
+    Math.abs(x-p.x)<p.w/2 &&
+    Math.abs(z-p.z)<p.d/2
+  );
+}
+
+for(const p of parks){
+  addPlane(p.w,p.d,material(0x4d8054),p.x,0.01,p.z);
+  addPlane(p.w-8,3,sidewalkMat,p.x,0.025,p.z);
+  addPlane(3,p.d-8,sidewalkMat,p.x,0.03,p.z);
+
+  for(let x=p.x-p.w/2+7;x<p.x+p.w/2-4;x+=11){
+    for(let z=p.z-p.d/2+7;z<p.z+p.d/2-4;z+=12){
+      if(Math.abs(x-p.x)<5||Math.abs(z-p.z)<5)continue;
+
+      const trunk=new THREE.Mesh(treeGeo,treeTrunk);
+      trunk.position.set(x,1.5,z);
+      scene.add(trunk);
+
+      const crown=new THREE.Mesh(crownGeo,treeLeaves);
+      crown.position.set(x,4,z);
+      scene.add(crown);
+    }
+  }
+}
+
+// ========================================
+// 7. DISTRICTS
+// ========================================
+function getDistrict(x,z){
+  if(z < -430)return "WATERFRONT";
+  if(x>390&&z>300&&z<500)return "AIRPORT";
+  if(x < -300 && z < 100)return "INDUSTRIAL";
+  if(Math.abs(x)<150&&Math.abs(z)<150)return "DOWNTOWN";
+  if(x>200&&z>150)return "RESIDENTIAL";
+  if(Math.abs(x)<300&&z>-300&&z<300)return "COMMERCIAL";
+  return "OUTER CITY";
+}
+
+function reservedArea(x,z){
+  if(inPark(x,z))return true;
+  if(Math.abs(x)<45&&Math.abs(z)<45)return true;
+  if(z < -440)return true;
+  if(x>390&&z>300&&z<500)return true;
+  if(Math.abs(x+80)<48&&Math.abs(z-80)<38)return true;
+  return false;
+}
+
+// ========================================
+// 8. DETAILED BUILDING GENERATOR
+// ========================================
+const architecture=new THREE.Group();
+scene.add(architecture);
+
+function makeBuilding(x,z,w,d,h,type){
+  const b=new THREE.Group();
+  b.position.set(x,0,z);
+  architecture.add(b);
+
+  const facade=type==="tower"
+    ? glassMats[Math.floor(Math.random()*glassMats.length)]
+    : concreteMats[Math.floor(Math.random()*concreteMats.length)];
 
   // Main structure
-  archBox(building,w,h,d,facade,0,h/2,0);
+  addBox(b,w,h,d,facade,0,h/2,0);
 
-  // Foundation and entrance
-  archBox(building,w+0.5,0.7,d+0.5,
-    buildingMats.roof,0,0.35,0);
+  // Base
+  addBox(b,w+0.5,0.6,d+0.5,roofMat,0,0.3,0);
 
-  const doorW = Math.min(2.4,w*0.22);
-  archBox(building,doorW,3,0.16,
-    buildingMats.shop,0,1.5,d/2+0.09);
-
-  // Ground-floor storefront glazing
-  if(type !== "house"){
-    const shopGlass = buildingMats.glass[1];
-    archBox(building,w*0.76,2.5,0.12,
-      shopGlass,0,2.1,d/2+0.1);
-    archBox(building,w*0.9,0.22,0.35,
-      buildingMats.roof,0,3.55,d/2+0.16);
+  // Shopfront / entrance
+  if(type!=="house"){
+    addBox(b,w*0.76,2.5,0.1,shopMat,0,2,d/2+0.07);
+    addBox(b,w*0.9,0.2,0.35,roofMat,0,3.4,d/2+0.15);
   }
 
-  // Repeated windows on front and rear facades
-  const floors = Math.max(1,Math.floor((h-3)/3.5));
-  const columns = Math.max(2,Math.floor(w/2.8));
-  const windowWidth = Math.min(1.35,w/(columns+1)*0.58);
-  const windowHeight = type === "house" ? 1.15 : 1.55;
+  addBox(b,Math.min(2,w*.2),2.8,.12,roofMat,
+    0,1.4,d/2+.16);
 
-  for(let floor=1;floor<=floors;floor++){
-    const y=2.1+floor*3.15;
-    if(y>h-1.4) continue;
+  // Facade windows
+  const floors=Math.min(28,Math.max(1,Math.floor((h-3)/3.5)));
+  const columns=Math.max(2,Math.floor(w/2.7));
+  const ww=Math.min(1.25,w/(columns+1)*.6);
+  const wh=type==="house"?1.15:1.6;
 
-    for(let col=0;col<columns;col++){
-      const wx=-w/2+(col+0.7)*w/columns;
+  for(let f=0;f<floors;f++){
+    const y=3+f*3.2;
+    if(y+wh/2>h-1)continue;
 
-      // Front windows
-      archBox(building,windowWidth,windowHeight,0.10,
-        buildingMats.darkWindow,wx,y,d/2+0.07);
+    for(let c=0;c<columns;c++){
+      const wx=-w/2+(c+0.7)*w/columns;
 
-      // Rear windows
-      archBox(building,windowWidth,windowHeight,0.10,
-        buildingMats.darkWindow,wx,y,-d/2-0.07);
+      addBox(b,ww,wh,.07,windowMat,wx,y,d/2+.06);
+      addBox(b,ww*.78,wh*.76,.025,brightGlass,wx,y,d/2+.105);
+      addBox(b,ww,wh,.07,windowMat,wx,y,-d/2-.06);
 
-      // Bright inset glass
-      archBox(building,windowWidth*0.78,windowHeight*0.76,0.025,
-        buildingMats.window,wx,y,d/2+0.13);
-
-      // Balconies on residential buildings
-      if(type==="house" && col%2===0){
-        archBox(building,windowWidth+0.45,0.12,0.8,
-          buildingMats.balcony,wx,y-0.75,d/2+0.35);
-        archBox(building,windowWidth+0.45,0.65,0.07,
-          buildingMats.balcony,wx,y-0.4,d/2+0.72);
+      if(type==="house"&&f%2===0&&c%2===0){
+        addBox(b,ww+.35,.12,.7,balconyMat,
+          wx,y-.72,d/2+.28);
+        addBox(b,ww+.35,.5,.07,balconyMat,
+          wx,y-.4,d/2+.62);
       }
     }
 
-    // Side windows
-    const sideRows=Math.max(2,Math.floor(d/3));
-    for(let col=0;col<sideRows;col++){
-      const wz=-d/2+(col+0.7)*d/sideRows;
-      archBox(building,0.08,windowHeight,1.05,
-        buildingMats.darkWindow,w/2+0.07,y,wz);
-      archBox(building,0.08,windowHeight,1.05,
-        buildingMats.darkWindow,-w/2-0.07,y,wz);
+    const sideColumns=Math.max(2,Math.floor(d/3));
+    for(let c=0;c<sideColumns;c++){
+      const wz=-d/2+(c+.7)*d/sideColumns;
+      addBox(b,.07,wh,1,windowMat,w/2+.06,y,wz);
+      addBox(b,.07,wh,1,windowMat,-w/2-.06,y,wz);
     }
   }
 
-  // Rooftop parapet
-  archBox(building,w,0.5,0.35,
-    buildingMats.roof,0,h+0.2,d/2-0.1);
-  archBox(building,w,0.5,0.35,
-    buildingMats.roof,0,h+0.2,-d/2+0.1);
+  // Roof parapets and rooftop equipment
+  addBox(b,w,.45,.25,roofMat,0,h+.2,d/2-.1);
+  addBox(b,w,.45,.25,roofMat,0,h+.2,-d/2+.1);
+  addBox(b,Math.max(2,w*.22),2.2,Math.max(2,d*.22),
+    roofMat,w*.15,h+1.2,-d*.1);
 
-  // Rooftop machinery and variation
-  if(h>20){
-    const rw=Math.max(2,w*0.24);
-    archBox(building,rw,2.2,rw,
-      buildingMats.roof,w*0.15,h+1.3,-d*0.12);
+  // Crown on taller skyscrapers
+  if(type==="tower"&&h>50){
+    addBox(b,w*.55,3,d*.55,facade,0,h+1.7,0);
+    addBox(b,w*.2,5,d*.2,roofMat,0,h+5.5,0);
   }
 
-  // Tall towers get a smaller stepped crown
-  if(type==="tower"){
-    archBox(building,w*0.56,3,d*0.56,
-      facade,0,h+1.7,0);
-    if(h>55){
-      archBox(building,w*0.24,5,d*0.24,
-        buildingMats.roof,0,h+5.5,0);
-    }
-  }
-
-  return building;
+  return b;
 }
 
-// Streetlights
-function makeStreetlight(x,z){
-  const lamp=new THREE.Group();
-  lamp.position.set(x,0,z);
-  architecture.add(lamp);
-
-  archBox(lamp,0.16,5.2,0.16,
-    buildingMats.pole,0,2.6,0);
-  archBox(lamp,1.5,0.13,0.13,
-    buildingMats.pole,0.62,5.05,0);
-  archBox(lamp,0.55,0.18,0.32,
-    buildingMats.light,1.2,4.98,0);
-}
-
-// Generate buildings in existing city blocks.
-// Roads lie on 50-unit intervals; keep buildings away from roads.
+// Build lots with roads kept clear
 for(let bx=-525;bx<=525;bx+=50){
   for(let bz=-525;bz<=525;bz+=50){
-
-    // Leave the central player spawn clear
-    if(Math.abs(bx)<35 && Math.abs(bz)<35) continue;
-
-    // Leave room for the main streets
-    const district =
-      Math.abs(bx)<150 && Math.abs(bz)<150
-        ? "downtown"
-        : bx < -300 && bz < 100
-          ? "industrial"
-          : bx > 200 && bz > 150
-            ? "residential"
-            : "commercial";
-
-    const lots = district==="downtown" ? 2 : 1;
+    const district=getDistrict(bx,bz);
+    const lots=district==="DOWNTOWN"?2:1;
 
     for(let i=0;i<lots;i++){
-      const x=bx+(Math.random()-0.5)*17;
-      const z=bz+(Math.random()-0.5)*17;
+      const x=bx+(Math.random()-.5)*17;
+      const z=bz+(Math.random()-.5)*17;
+
+      if(reservedArea(x,z))continue;
 
       let w,d,h,type;
 
-      if(district==="downtown"){
-        w=10+Math.random()*7;
-        d=10+Math.random()*7;
-        h=35+Math.random()*75;
-        type="tower";
-      }else if(district==="industrial"){
-        w=14+Math.random()*7;
-        d=14+Math.random()*7;
-        h=8+Math.random()*9;
-        type="commercial";
-      }else if(district==="residential"){
+      if(district==="DOWNTOWN"){
         w=10+Math.random()*6;
         d=10+Math.random()*6;
-        h=10+Math.random()*22;
+        h=30+Math.random()*65;
+        type="tower";
+      }else if(district==="INDUSTRIAL"){
+        w=13+Math.random()*6;
+        d=13+Math.random()*6;
+        h=8+Math.random()*10;
+        type="commercial";
+      }else if(district==="RESIDENTIAL"){
+        w=10+Math.random()*6;
+        d=10+Math.random()*6;
+        h=10+Math.random()*20;
         type="house";
       }else{
-        w=10+Math.random()*7;
-        d=10+Math.random()*7;
-        h=14+Math.random()*32;
+        w=10+Math.random()*6;
+        d=10+Math.random()*6;
+        h=13+Math.random()*28;
         type="commercial";
       }
 
@@ -219,8 +351,322 @@ for(let bx=-525;bx<=525;bx+=50){
   }
 }
 
-// Add lights along selected roads
+// ========================================
+// 9. STREETLIGHTS
+// ========================================
+const streetlights=new THREE.Group();
+scene.add(streetlights);
+
+function makeStreetlight(x,z){
+  const g=new THREE.Group();
+  g.position.set(x,0,z);
+  streetlights.add(g);
+
+  addBox(g,.15,5,.15,poleMat,0,2.5,0);
+  addBox(g,1.2,.13,.13,poleMat,.5,4.9,0);
+  addBox(g,.5,.17,.28,lampMat,1,4.85,0);
+}
+
 for(let p=-500;p<=500;p+=50){
   makeStreetlight(p+11,0);
   makeStreetlight(0,p+11);
 }
+
+// ========================================
+// 10. AIRPORT AND WATERFRONT BRIDGE
+// ========================================
+addPlane(170,40,roadMat,480,.02,405);
+addPlane(150,.35,lineMat,480,.04,405);
+addBox(scene,65,9,20,concreteMats[2],480,4.5,355);
+addBox(scene,6,24,6,glassMats[2],445,12,355);
+
+addBox(scene,150,1.3,18,concreteMats[0],340,.7,-445);
+for(let x=275;x<=405;x+=32){
+  addBox(scene,1.3,8,1.3,roofMat,x,4,-445);
+}
+
+// ========================================
+// 11. PLAYER CHARACTER
+// ========================================
+const player=new THREE.Group();
+
+const body=new THREE.Mesh(
+  new THREE.CapsuleGeometry(.48,.75,3,7),
+  material(0x284d78)
+);
+body.position.y=1.25;
+player.add(body);
+
+const head=new THREE.Mesh(
+  new THREE.SphereGeometry(.32,10,8),
+  material(0xc99572)
+);
+head.position.y=2.2;
+player.add(head);
+
+const legs=new THREE.Mesh(
+  new THREE.BoxGeometry(.65,.65,.4),
+  material(0x20262e)
+);
+legs.position.y=.4;
+player.add(legs);
+
+player.position.set(0,0,15);
+scene.add(player);
+
+// ========================================
+// 12. MOVING TRAFFIC
+// ========================================
+const trafficRoot=new THREE.Group();
+scene.add(trafficRoot);
+const traffic=[];
+
+const carColors=[
+  0xeeeeee,0x252b32,0x9b3030,
+  0x244c73,0xb5a77d,0x527361
+].map(c=>material(c,.4,.12));
+
+const carGlass=material(0x7199a8,.25,.25);
+const rubber=material(0x17191c);
+const headlight=new THREE.MeshBasicMaterial({color:0xfff0c0});
+const taillight=new THREE.MeshBasicMaterial({color:0xff2929});
+
+function makeCar(x,z,axis,direction,speed){
+  const car=new THREE.Group();
+  const paint=carColors[Math.floor(Math.random()*carColors.length)];
+
+  addBox(car,2.05,.8,4.1,paint,0,.75,0);
+  addBox(car,1.55,.65,1.95,carGlass,0,1.35,-.15);
+
+  for(const wx of [-1.02,1.02]){
+    for(const wz of [-1.25,1.25]){
+      const wheel=new THREE.Mesh(
+        new THREE.CylinderGeometry(.34,.34,.18,8),rubber
+      );
+      wheel.rotation.z=Math.PI/2;
+      wheel.position.set(wx,.38,wz);
+      car.add(wheel);
+    }
+  }
+
+  for(const side of [-.68,.68]){
+    addBox(car,.34,.2,.08,headlight,side,.82,2.08);
+    addBox(car,.34,.2,.08,taillight,side,.82,-2.08);
+  }
+
+  car.position.set(x,0,z);
+  car.rotation.y=axis==="x"
+    ?(direction>0?Math.PI/2:-Math.PI/2)
+    :(direction>0?0:Math.PI);
+
+  trafficRoot.add(car);
+  traffic.push({car,axis,direction,speed});
+}
+
+for(let road=-500;road<=500;road+=100){
+  for(const lane of [-3.8,3.8]){
+    const direction=lane>0?1:-1;
+
+    for(let i=0;i<2;i++){
+      const start=-450+i*450+Math.random()*60;
+
+      makeCar(road+lane,start,"z",direction,7+Math.random()*4);
+      makeCar(start,road+lane,"x",direction,7+Math.random()*4);
+    }
+  }
+}
+
+document.getElementById("trafficCount").textContent=traffic.length;
+
+function updateTraffic(dt){
+  for(const t of traffic){
+    if(t.axis==="x"){
+      t.car.position.x+=t.direction*t.speed*dt;
+      if(t.car.position.x>590)t.car.position.x=-590;
+      if(t.car.position.x< -590)t.car.position.x=590;
+    }else{
+      t.car.position.z+=t.direction*t.speed*dt;
+      if(t.car.position.z>590)t.car.position.z=-590;
+      if(t.car.position.z< -590)t.car.position.z=590;
+    }
+  }
+}
+
+// ========================================
+// 13. PC AND MOBILE CONTROLS
+// ========================================
+const keys={};
+let yaw=0,pitch=.18,started=false,runHeld=false;
+
+addEventListener("keydown",e=>{
+  keys[e.key.toLowerCase()]=true;
+});
+addEventListener("keyup",e=>{
+  keys[e.key.toLowerCase()]=false;
+});
+addEventListener("blur",()=>{
+  for(const k in keys)keys[k]=false;
+  runHeld=false;
+});
+
+let dragging=false,lastX=0,lastY=0;
+
+renderer.domElement.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="mouse"&&e.button===0){
+    dragging=true;
+    lastX=e.clientX;
+    lastY=e.clientY;
+  }
+});
+addEventListener("pointerup",()=>dragging=false);
+addEventListener("pointermove",e=>{
+  if(!dragging||!started)return;
+  yaw-=(e.clientX-lastX)*.004;
+  pitch=THREE.MathUtils.clamp(
+    pitch+(e.clientY-lastY)*.003,-.2,.8
+  );
+  lastX=e.clientX;
+  lastY=e.clientY;
+});
+
+// Mobile joystick
+const stick=document.getElementById("stick");
+const nub=document.getElementById("nub");
+let joyX=0,joyY=0,joyId=null;
+
+function moveJoystick(e){
+  const r=stick.getBoundingClientRect();
+  let dx=e.clientX-(r.left+r.width/2);
+  let dy=e.clientY-(r.top+r.height/2);
+  const len=Math.hypot(dx,dy);
+
+  if(len>32){dx=dx/len*32;dy=dy/len*32;}
+  joyX=dx/32;
+  joyY=dy/32;
+  nub.style.transform=`translate(${dx}px,${dy}px)`;
+}
+function resetJoystick(){
+  joyId=null;joyX=0;joyY=0;
+  nub.style.transform="translate(0,0)";
+}
+
+stick.addEventListener("pointerdown",e=>{
+  joyId=e.pointerId;
+  stick.setPointerCapture(e.pointerId);
+  moveJoystick(e);
+});
+stick.addEventListener("pointermove",e=>{
+  if(e.pointerId===joyId)moveJoystick(e);
+});
+stick.addEventListener("pointerup",resetJoystick);
+stick.addEventListener("pointercancel",resetJoystick);
+
+const runButton=document.getElementById("run");
+runButton.addEventListener("pointerdown",e=>{
+  e.preventDefault();runHeld=true;
+});
+runButton.addEventListener("pointerup",()=>runHeld=false);
+runButton.addEventListener("pointercancel",()=>runHeld=false);
+runButton.addEventListener("lostpointercapture",()=>runHeld=false);
+
+// Mobile camera
+const look=document.getElementById("look");
+let lookId=null,lx=0,ly=0;
+
+look.addEventListener("pointerdown",e=>{
+  lookId=e.pointerId;lx=e.clientX;ly=e.clientY;
+  look.setPointerCapture(e.pointerId);
+});
+look.addEventListener("pointermove",e=>{
+  if(e.pointerId!==lookId)return;
+  yaw-=(e.clientX-lx)*.008;
+  pitch=THREE.MathUtils.clamp(
+    pitch+(e.clientY-ly)*.006,-.2,.8
+  );
+  lx=e.clientX;ly=e.clientY;
+});
+look.addEventListener("pointerup",()=>lookId=null);
+look.addEventListener("pointercancel",()=>lookId=null);
+
+// ========================================
+// 14. ENTER WORLD
+// ========================================
+document.getElementById("play").addEventListener("click",()=>{
+  started=true;
+  document.getElementById("start").style.display="none";
+});
+
+// ========================================
+// 15. GAME LOOP
+// ========================================
+const clock=new THREE.Clock();
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),.04);
+
+  updateTraffic(dt);
+
+  if(started){
+    let forward=
+      (keys["w"]||keys["arrowup"]?1:0)-
+      (keys["s"]||keys["arrowdown"]?1:0)-joyY;
+
+    let side=
+      (keys["d"]||keys["arrowright"]?1:0)-
+      (keys["a"]||keys["arrowleft"]?1:0)+joyX;
+
+    const len=Math.hypot(forward,side);
+    if(len>1){forward/=len;side/=len;}
+
+    const speed=(keys["shift"]||runHeld)?16:8;
+    const dx=(Math.sin(yaw)*forward+Math.cos(yaw)*side)*speed*dt;
+    const dz=(Math.cos(yaw)*forward-Math.sin(yaw)*side)*speed*dt;
+
+    player.position.x=THREE.MathUtils.clamp(
+      player.position.x+dx,-590,590
+    );
+    player.position.z=THREE.MathUtils.clamp(
+      player.position.z+dz,-590,590
+    );
+
+    if(Math.abs(forward)+Math.abs(side)>.1){
+      player.rotation.y=Math.atan2(dx,dz);
+      legs.rotation.x=Math.sin(performance.now()*.012)*.12;
+    }else{
+      legs.rotation.x=0;
+    }
+
+    const x=player.position.x;
+    const z=player.position.z;
+    document.getElementById("position").textContent=
+      `${Math.round(x)}, ${Math.round(z)}`;
+    document.getElementById("district").textContent=getDistrict(x,z);
+
+    const target=new THREE.Vector3(x,1.8,z);
+    const distance=7.5;
+    camera.position.set(
+      target.x+Math.sin(yaw)*Math.cos(pitch)*distance,
+      target.y+2.5+Math.sin(pitch)*distance,
+      target.z+Math.cos(yaw)*Math.cos(pitch)*distance
+    );
+    camera.lookAt(target);
+  }
+
+  renderer.render(scene,camera);
+}
+
+addEventListener("resize",()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));
+});
+
+document.getElementById("status").textContent=
+  "World generated. Ready to explore.";
+
+animate();
+</script>
+</body>
+</html>
