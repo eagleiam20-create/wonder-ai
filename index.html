@@ -1,0 +1,502 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WONDER AI — Imagine. Create. Play.</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b0b14;
+      color: #f7f5ff;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 7%;
+      border-bottom: 1px solid #27263a;
+    }
+
+    .logo {
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: #a78bfa;
+    }
+
+    .status {
+      font-size: 12px;
+      color: #c4b5fd;
+      border: 1px solid #514078;
+      padding: 8px 12px;
+      border-radius: 20px;
+    }
+
+    main {
+      width: min(950px, 90%);
+      margin: 65px auto;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 38px;
+    }
+
+    .eyebrow {
+      color: #c4b5fd;
+      font-size: 12px;
+      letter-spacing: 3px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 7vw, 64px);
+      line-height: 1.1;
+      margin-bottom: 18px;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, #c4b5fd, #f0abfc);
+      color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #aaa8bf;
+      line-height: 1.7;
+      max-width: 570px;
+      margin: auto;
+    }
+
+    .creator {
+      background: #151522;
+      border: 1px solid #302d48;
+      border-radius: 22px;
+      padding: 25px;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 15px;
+      resize: vertical;
+      background: #0d0d18;
+      color: white;
+      border: 1px solid #37334e;
+      border-radius: 12px;
+      font: inherit;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #a78bfa;
+    }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 20px;
+    }
+
+    .example {
+      background: #222033;
+      color: #d5c9ff;
+      border: 1px solid #3b3654;
+      border-radius: 20px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      transition: transform .15s, opacity .15s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #8b5cf6, #c026d3);
+      color: white;
+      font-weight: bold;
+    }
+
+    .workspace {
+      background: #151522;
+      border: 1px solid #302d48;
+      border-radius: 22px;
+      overflow: hidden;
+    }
+
+    .workspace-top {
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #302d48;
+    }
+
+    .workspace-top p {
+      color: #a9a6bd;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .score {
+      color: #e9d5ff;
+      background: #29213e;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    .arena {
+      min-height: 310px;
+      position: relative;
+      overflow: hidden;
+      margin: 18px;
+      border-radius: 15px;
+      border: 1px solid #35304c;
+      background:
+        radial-gradient(ellipse at center, #272044 0%, #11111f 75%);
+    }
+
+    .arena-message {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      pointer-events: none;
+    }
+
+    .arena-message .emoji {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .arena-message p {
+      color: #aaa8bf;
+      margin-top: 9px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    #target {
+      position: absolute;
+      display: none;
+      width: 52px;
+      height: 52px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f0abfc, #8b5cf6);
+      box-shadow: 0 0 25px #a855f777;
+      font-size: 25px;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .game-controls {
+      display: flex;
+      gap: 12px;
+      padding: 0 18px 20px;
+    }
+
+    .game-controls button {
+      flex: 1;
+      padding: 13px;
+      border-radius: 11px;
+      font-weight: bold;
+    }
+
+    #startBtn {
+      background: #c4b5fd;
+      color: #171126;
+      border: none;
+    }
+
+    #resetBtn {
+      background: transparent;
+      color: #ded9f4;
+      border: 1px solid #48415f;
+    }
+
+    #message {
+      color: #c4b5fd;
+      font-size: 13px;
+      text-align: center;
+      padding: 0 18px 18px;
+      min-height: 35px;
+    }
+
+    .note {
+      text-align: center;
+      color: #77758e;
+      font-size: 12px;
+      line-height: 1.7;
+      margin: 22px 0 40px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #77758e;
+      border-top: 1px solid #27263a;
+      font-size: 12px;
+    }
+
+    @media (max-width: 500px) {
+      main {
+        margin-top: 40px;
+      }
+
+      .creator {
+        padding: 17px;
+      }
+
+      .arena {
+        min-height: 280px;
+        margin: 12px;
+      }
+
+      .game-controls {
+        padding: 0 12px 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">WONDER<span> AI</span></div>
+    <div class="status">✦ FIRST PROTOTYPE</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow">YOUR IMAGINATION, INTERACTIVE</div>
+      <h1>Ideas become <span>experiences.</span></h1>
+      <p class="subtitle">
+        Describe what you imagine. Start with a mini-game,
+        play it, and see your idea come to life.
+      </p>
+    </section>
+
+    <section class="creator">
+      <label for="idea">What do you want to create?</label>
+
+      <textarea id="idea"
+        placeholder="Example: Create a fun game where I catch magical stars..."></textarea>
+
+      <div class="examples">
+        <button class="example" data-idea="A magical star-catching game">✨ Catch stars</button>
+        <button class="example" data-idea="A fast space adventure game">🚀 Space adventure</button>
+        <button class="example" data-idea="A fun target tapping game">🎯 Tap challenge</button>
+      </div>
+
+      <button class="primary" id="createBtn">
+        ✦ Create My Experience
+      </button>
+    </section>
+
+    <section class="workspace">
+      <div class="workspace-top">
+        <div>
+          <h3 id="gameTitle">Your First Mini-Game</h3>
+          <p id="gameDescription">Ready when you are. Let's play!</p>
+        </div>
+        <div class="score">Score: <span id="score">0</span></div>
+      </div>
+
+      <div class="arena" id="arena">
+        <div class="arena-message" id="arenaMessage">
+          <div class="emoji">🌌</div>
+          <h3>Your world starts here</h3>
+          <p>Describe your idea above, then create and play.</p>
+        </div>
+        <button id="target" aria-label="Tap the star">✨</button>
+      </div>
+
+      <div class="game-controls">
+        <button id="startBtn">▶ Start Playing</button>
+        <button id="resetBtn">↻ Reset</button>
+      </div>
+
+      <div id="message" aria-live="polite">
+        Your next adventure is one click away.
+      </div>
+    </section>
+
+    <p class="note">
+      WONDER AI is an early prototype. This version uses preset game
+      behavior, not a live AI model. Your score is kept only in this page.
+    </p>
+  </main>
+
+  <footer>
+    WONDER AI © 2026 · Imagine it. Create it. Play it.
+  </footer>
+
+  <script>
+    const ideaInput = document.getElementById("idea");
+    const createBtn = document.getElementById("createBtn");
+    const gameTitle = document.getElementById("gameTitle");
+    const gameDescription = document.getElementById("gameDescription");
+    const arena = document.getElementById("arena");
+    const arenaMessage = document.getElementById("arenaMessage");
+    const target = document.getElementById("target");
+    const scoreDisplay = document.getElementById("score");
+    const message = document.getElementById("message");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let score = 0;
+    let playing = false;
+    let timeLeft = 20;
+    let timer = null;
+    let gameCreated = false;
+
+    document.querySelectorAll(".example").forEach(button => {
+      button.addEventListener("click", () => {
+        ideaInput.value = button.dataset.idea;
+      });
+    });
+
+    function stopGame() {
+      playing = false;
+      clearInterval(timer);
+      timer = null;
+      target.style.display = "none";
+      startBtn.textContent = "▶ Play Again";
+    }
+
+    function moveTarget() {
+      const maxX = Math.max(0, arena.clientWidth - target.offsetWidth);
+      const maxY = Math.max(0, arena.clientHeight - target.offsetHeight);
+
+      target.style.left = Math.floor(Math.random() * (maxX + 1)) + "px";
+      target.style.top = Math.floor(Math.random() * (maxY + 1)) + "px";
+    }
+
+    function createGame() {
+      const idea = ideaInput.value.trim();
+
+      if (!idea) {
+        message.textContent = "Pehle apni game idea likho ya example choose karo!";
+        ideaInput.focus();
+        return;
+      }
+
+      stopGame();
+      score = 0;
+      timeLeft = 20;
+      scoreDisplay.textContent = score;
+      gameCreated = true;
+
+      const shortTitle = idea.length > 32
+        ? idea.slice(0, 32).trim() + "…"
+        : idea;
+
+      gameTitle.textContent = shortTitle;
+      gameDescription.textContent =
+        "Tap the glowing star as many times as you can in 20 seconds.";
+
+      arenaMessage.style.display = "none";
+      message.textContent = "Game created! Press Start Playing.";
+      startBtn.textContent = "▶ Start Playing";
+    }
+
+    function startGame() {
+      if (!gameCreated) {
+        message.textContent = "Pehle Create My Experience dabao.";
+        return;
+      }
+
+      stopGame();
+      score = 0;
+      timeLeft = 20;
+      scoreDisplay.textContent = score;
+      playing = true;
+
+      arenaMessage.style.display = "none";
+      target.style.display = "flex";
+      startBtn.textContent = "Playing…";
+      message.textContent = "Go! Tap the glowing star!";
+      moveTarget();
+
+      timer = setInterval(() => {
+        timeLeft--;
+
+        if (timeLeft <= 0) {
+          stopGame();
+          message.textContent =
+            "Time's up! Final score: " + score + ". Play again?";
+        } else {
+          message.textContent = "Time left: " + timeLeft + " seconds";
+        }
+      }, 1000);
+    }
+
+    target.addEventListener("click", () => {
+      if (!playing) return;
+
+      score++;
+      scoreDisplay.textContent = score;
+      moveTarget();
+    });
+
+    createBtn.addEventListener("click", createGame);
+    startBtn.addEventListener("click", startGame);
+
+    resetBtn.addEventListener("click", () => {
+      stopGame();
+      score = 0;
+      timeLeft = 20;
+      gameCreated = false;
+      scoreDisplay.textContent = "0";
+      gameTitle.textContent = "Your First Mini-Game";
+      gameDescription.textContent = "Ready when you are. Let's play!";
+      arenaMessage.style.display = "flex";
+      target.style.display = "none";
+      startBtn.textContent = "▶ Start Playing";
+      message.textContent = "Reset complete. Create a new experience!";
+    });
+  </script>
+</body>
+</html>
